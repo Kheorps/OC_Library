@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import * as firebase from 'firebase';
+import { initializeApp } from 'firebase';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +16,6 @@ export class AppComponent {
       storageBucket: 'oc-library-4f308.appspot.com',
       messagingSenderId: '873839750526'
     };
-    firebase.initializeApp(config);
+    initializeApp(config);
   }
 }
