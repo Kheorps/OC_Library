@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Book } from '../models/book.model';
 import { Subject } from 'rxjs';
-import { database } from 'firebase';
+import { database, storage } from 'firebase';
 import DataSnapshot = firebase.database.DataSnapshot;
 
 @Injectable({
@@ -54,6 +54,18 @@ export class BooksService {
   }
 
   removebook(book: Book) {
+    if (book.photo) {
+      const storageRef = storage().refFromURL(book.photo);
+      storageRef.delete().then(
+        () => {
+          console.log('Photo removed !');
+        },
+        (error) => {
+          console.log('Could not remove photo : ' + error);
+        }
+      );
+    }
+
     const bookIndexToRemove = this.books.findIndex(
       (bookEl) => {
         if (bookEl === book) {
@@ -64,5 +76,27 @@ export class BooksService {
     this.books.splice(bookIndexToRemove, 1);
     this.savebooks();
     this.emitbooks();
+  }
+
+  uploadFile(file: File) {
+    return new Promise(
+      (resolve, reject) => {
+        const almostUniqueFileName = Date.now().toString();
+        const upload = storage().ref().child('images/' + almostUniqueFileName + file.name).put(file);
+
+        upload.on(storage.TaskEvent.STATE_CHANGED,
+          () => {
+            console.log('Chargement...');
+          },
+          (error) => {
+            console.log('Erreur de chargement : ' + error);
+            reject();
+          },
+          () => {
+            resolve(upload.snapshot.ref.getDownloadURL());
+          }
+        );
+      }
+    );
   }
 }
